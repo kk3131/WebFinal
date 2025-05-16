@@ -19,39 +19,73 @@ namespace FinalTest_02.Controllers
             _context = context;
         }
 
-        // GET: Orders
-        public async Task<IActionResult> Index()
-        {
-            return View(await _context.Orders.ToListAsync());
-        }
-
-        // GET: Orders/Details/5
-        public async Task<IActionResult> Details(int? id)
+        // 加入購物車時會呼叫這個版本的 Index（傳 productId）
+        public async Task<IActionResult> Index(int? id)
         {
             if (id == null)
             {
-                return NotFound();
+                // 沒傳 productId 就顯示全部訂單
+                var orders = await _context.Orders.ToListAsync();
+                return View("OrderList", orders); // 可自訂 View 顯示所有訂單
             }
 
-            var order = await _context.Orders
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (order == null)
+            // 取得商品資料
+            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
+            if (product == null)
             {
                 return NotFound();
             }
+
+            // 建立一筆訂單
+            var order = new Order
+            {
+                OrderDate = DateTime.Now,
+                CustomerName = "測試用戶",
+                CustomerPhone = "0912345678",
+                CustomerEmail = "test@example.com",
+                TotalAmount = product.Price * 1,
+                OrderDetails = new List<OrderDetail>()
+            };
+
+            // 建立一筆 OrderDetail 並設定 Order 屬性
+            var orderDetail = new OrderDetail
+            {
+                ProductId = product.Id,
+                Product = product,
+                Quantity = 1,
+                UnitPrice = product.Price,
+                Order = order // ★★★ 關鍵：設定 required Order 屬性 ★★★
+            };
+
+            order.OrderDetails.Add(orderDetail);
 
             return View(order);
         }
 
-        // GET: Orders/Create
+        // 顯示已儲存訂單詳細資料
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+                return NotFound();
+
+            var order = await _context.Orders
+                .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.Product)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (order == null)
+                return NotFound();
+
+            return View(order);
+        }
+
+        // 建立訂單頁面
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Orders/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // 儲存訂單
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,OrderDate,CustomerName,CustomerPhone,CustomerEmail,TotalAmount")] Order order)
@@ -65,33 +99,24 @@ namespace FinalTest_02.Controllers
             return View(order);
         }
 
-        // GET: Orders/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
-            {
                 return NotFound();
-            }
+
             return View(order);
         }
 
-        // POST: Orders/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,OrderDate,CustomerName,CustomerPhone,CustomerEmail,TotalAmount")] Order order)
         {
             if (id != order.Id)
-            {
                 return NotFound();
-            }
 
             if (ModelState.IsValid)
             {
@@ -103,38 +128,27 @@ namespace FinalTest_02.Controllers
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!OrderExists(order.Id))
-                    {
                         return NotFound();
-                    }
                     else
-                    {
                         throw;
-                    }
                 }
                 return RedirectToAction(nameof(Index));
             }
             return View(order);
         }
 
-        // GET: Orders/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var order = await _context.Orders
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var order = await _context.Orders.FirstOrDefaultAsync(m => m.Id == id);
             if (order == null)
-            {
                 return NotFound();
-            }
 
             return View(order);
         }
 
-        // POST: Orders/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -143,9 +157,9 @@ namespace FinalTest_02.Controllers
             if (order != null)
             {
                 _context.Orders.Remove(order);
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
