@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<FinalTest_02.Models.Product>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "產品列表";
 }
 
 <h1>產品列表</h1>
@@ -56,7 +56,7 @@
     <div class="modal fade" id="orderModal_@item.Id" tabindex="-1" aria-labelledby="orderModalLabel_@item.Id" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form method="post" asp-action="AddToOrder">
+                <form method="post" asp-controller="Orders" asp-action="AddToOrder">
                     <div class="modal-header">
                         <h5 class="modal-title" id="orderModalLabel_@item.Id">訂購：@item.Name</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

@@ -62,6 +62,57 @@ namespace FinalTest_02.Controllers
             return View(order);
         }
 
+        // 新增：處理前端 Modal 表單送出訂單明細的 POST Action
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddToOrder(int ProductId, string Sweetness, string Ice, int Quantity)
+        {
+            if (Quantity <= 0)
+            {
+                ModelState.AddModelError("", "數量必須大於0");
+                // 可改成跳回原頁或顯示錯誤訊息
+                return RedirectToAction(nameof(Index), new { id = ProductId });
+            }
+
+            // 找商品
+            var product = await _context.Products.FindAsync(ProductId);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            // 建立訂單
+            var order = new Order
+            {
+                OrderDate = DateTime.Now,
+                CustomerName = "測試用戶",
+                CustomerPhone = "0912345678",
+                CustomerEmail = "test@example.com",
+                TotalAmount = product.Price * Quantity,
+                OrderDetails = new List<OrderDetail>()
+            };
+
+            // 建立訂單明細
+            var orderDetail = new OrderDetail
+            {
+                ProductId = product.Id,
+                Product = product,
+                Quantity = Quantity,
+                UnitPrice = product.Price,
+                Sweetness = Sweetness,
+                Ice = Ice,
+                Order = order
+            };
+
+            order.OrderDetails.Add(orderDetail);
+
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+
+            // 新增後跳回產品列表（可改為訂單列表或訂單明細頁）
+            return RedirectToAction(nameof(Index), "Products");
+        }
+
         // 顯示已儲存訂單詳細資料
         public async Task<IActionResult> Details(int? id)
         {

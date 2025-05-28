@@ -26,7 +26,6 @@ namespace FinalTest_02.Controllers
         }
 
 
-
         // GET: Products/Details/5
         public async Task<IActionResult> Details(int? id)
         {

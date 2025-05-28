@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FinalTest_02.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250504074537_InitialCreate")]
+    [Migration("20250528131932_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -64,6 +64,10 @@ namespace FinalTest_02.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Ice")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
@@ -72,6 +76,10 @@ namespace FinalTest_02.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<string>("Sweetness")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("UnitPrice")
                         .HasColumnType("decimal(18,2)");
@@ -126,7 +134,7 @@ namespace FinalTest_02.Migrations
                         .IsRequired();
 
                     b.HasOne("FinalTest_02.Models.Product", "Product")
-                        .WithMany()
+                        .WithMany("OrderDetails")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -137,6 +145,11 @@ namespace FinalTest_02.Migrations
                 });
 
             modelBuilder.Entity("FinalTest_02.Models.Order", b =>
+                {
+                    b.Navigation("OrderDetails");
+                });
+
+            modelBuilder.Entity("FinalTest_02.Models.Product", b =>
                 {
                     b.Navigation("OrderDetails");
                 });
