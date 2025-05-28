@@ -7,72 +7,96 @@
 <h1>產品列表</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-success">新增產品</a>
 </p>
-<table class="table">
+
+<table class="table table-striped">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Price)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Category)
-            </th>
-            @* <th> *@
-            @*     @Html.DisplayNameFor(model => model.ImageUrl) *@
-            @* </th> *@
-            <th></th>
+            <th>@Html.DisplayNameFor(model => model.Name)</th>
+            <th>@Html.DisplayNameFor(model => model.Description)</th>
+            <th>@Html.DisplayNameFor(model => model.Price)</th>
+            <th>@Html.DisplayNameFor(model => model.Category)</th>
+            <th>圖片</th>
+            <th>操作</th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Price)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Category)
-            </td>
-            @* <td> *@
-            @*     @Html.DisplayFor(modelItem => item.ImageUrl) *@
-            @* </td> *@
-
-
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                <td>@Html.DisplayFor(modelItem => item.Description)</td>
+                <td>@Html.DisplayFor(modelItem => item.Price)</td>
+                <td>@Html.DisplayFor(modelItem => item.Category)</td>
                 <td>
                     @if (!string.IsNullOrEmpty(item.ImageUrl))
                     {
-                        <img 
-                            src="@item.ImageUrl"
-                             alt="@item.Name"
-                             style="width:80px; height:auto;"
-                             class="img-thumbnail" 
-                             />
+                        <img src="@item.ImageUrl" alt="@item.Name" style="width: 80px; height: auto;" class="img-thumbnail" />
                     }
                     else
                     {
                         <span>無圖片</span>
                     }
                 </td>
-
-
-            <td>
-            @*     <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> | *@
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> 
-            @*     <a asp-action="Delete" asp-route-id="@item.Id">Delete</a> *@
-            </td>
-        </tr>
-}
+                <td>
+                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-info btn-sm">詳細</a>
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#orderModal_@item.Id">
+                        加入
+                    </button>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+
+<!-- Bootstrap Modal：每個產品一個 -->
+@foreach (var item in Model)
+{
+    <div class="modal fade" id="orderModal_@item.Id" tabindex="-1" aria-labelledby="orderModalLabel_@item.Id" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" asp-action="AddToOrder">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="orderModalLabel_@item.Id">訂購：@item.Name</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="ProductId" value="@item.Id" />
+
+                        <div class="mb-3">
+                            <label class="form-label">甜度</label>
+                            <select class="form-select" name="Sweetness">
+                                <option value="正常">正常</option>
+                                <option value="少糖">少糖</option>
+                                <option value="半糖">半糖</option>
+                                <option value="微糖">微糖</option>
+                                <option value="無糖">無糖</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">冰塊</label>
+                            <select class="form-select" name="Ice">
+                                <option value="正常">正常</option>
+                                <option value="少冰">少冰</option>
+                                <option value="微冰">微冰</option>
+                                <option value="去冰">去冰</option>
+                                <option value="熱飲">熱飲</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">數量</label>
+                            <input type="number" name="Quantity" class="form-control" min="1" value="1" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">加入訂單</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}

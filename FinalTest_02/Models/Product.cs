@@ -8,5 +8,7 @@
         public decimal Price { get; set; }
         public string Category { get; set; } = string.Empty; // 例如: 咖啡、茶、果汁等
         public string ImageUrl { get; set; } = string.Empty;
+
+        public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
     }
 }
