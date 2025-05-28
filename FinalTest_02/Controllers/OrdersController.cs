@@ -25,7 +25,10 @@ namespace FinalTest_02.Controllers
             if (id == null)
             {
                 // 沒傳 productId 就顯示全部訂單
-                var orders = await _context.Orders.ToListAsync();
+                var orders = await _context.Orders
+                    .Include(o => o.OrderDetails)
+                        .ThenInclude(od => od.Product) // ★ 加上這行，載入商品資訊
+                    .ToListAsync();
                 return View("OrderList", orders); // 可自訂 View 顯示所有訂單
             }
 
@@ -161,6 +164,35 @@ namespace FinalTest_02.Controllers
 
             return View(order);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangeQuantity(int orderDetailId, int change)
+        {
+            var detail = await _context.OrderDetails
+                .Include(od => od.Order)
+                .Include(od => od.Product)
+                .FirstOrDefaultAsync(od => od.Id == orderDetailId);
+
+            if (detail == null)
+            {
+                return NotFound();
+            }
+
+            // 調整數量（最小為 1）
+            detail.Quantity += change;
+            if (detail.Quantity < 1)
+                detail.Quantity = 1;
+
+            // 更新總金額（重新計算訂單總金額）
+            detail.Order.TotalAmount = detail.Order.OrderDetails.Sum(d => d.UnitPrice * d.Quantity);
+
+            await _context.SaveChangesAsync();
+
+            // 調整後回到訂單列表
+            return RedirectToAction(nameof(Index));
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]

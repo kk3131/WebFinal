@@ -31,6 +31,41 @@
                     <a asp-action="Delete" asp-route-id="@order.Id">刪除</a>
                 </td>
             </tr>
+            <tr>
+                <td colspan="5">
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>商品名稱</th>
+                                <th>數量</th>
+                                <th>調整數量</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var detail in order.OrderDetails)
+                            {
+                                <tr>
+                                    <td>@detail.Product.Name</td>
+                                    <td>@detail.Quantity</td>
+                                    <td>
+                                        <form asp-action="ChangeQuantity" method="post" style="display:inline">
+                                            <input type="hidden" name="orderDetailId" value="@detail.Id" />
+                                            <input type="hidden" name="change" value="1" />
+                                            <button type="submit" class="btn btn-success btn-sm">＋</button>
+                                        </form>
+                                        <form asp-action="ChangeQuantity" method="post" style="display:inline">
+                                            <input type="hidden" name="orderDetailId" value="@detail.Id" />
+                                            <input type="hidden" name="change" value="-1" />
+                                            <button type="submit" class="btn btn-danger btn-sm">－</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
         }
+
     </tbody>
 </table>
