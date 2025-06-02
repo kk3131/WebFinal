@@ -13,6 +13,8 @@ namespace FinalTest_02.Data
         public DbSet<Product> Products { get; set; } = null!;
         public DbSet<Order> Orders { get; set; } = null!;
         public DbSet<OrderDetail> OrderDetails { get; set; } = null!;
+    
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

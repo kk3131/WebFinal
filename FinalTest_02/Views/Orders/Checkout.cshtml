@@ -1,0 +1,38 @@
+﻿@model FinalTest_02.Models.CheckoutViewModel
+
+<h2>結帳畫面</h2>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>商品名稱</th>
+            <th>單價</th>
+            <th>數量</th>
+            <th>小計</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var detail in Model.OrderDetails)
+        {
+            <tr>
+                <td>@detail.Product.Name</td>
+                <td>@detail.UnitPrice.ToString("C")</td>
+                <td>@detail.Quantity</td>
+                <td>@(detail.UnitPrice * detail.Quantity)</td>
+            </tr>
+        }
+        <tr>
+            <td colspan="3" class="text-right"><strong>總金額：</strong></td>
+            <td><strong>@Model.TotalAmount.ToString("C")</strong></td>
+        </tr>
+    </tbody>
+</table>
+
+<form asp-action="CheckoutConfirmed" method="post">
+    @foreach (var detail in Model.OrderDetails)
+    {
+        <input type="hidden" name="orderDetailIds" value="@detail.Id" />
+    }
+    <button type="submit" class="btn btn-success">確認付款</button>
+    <a asp-action="Index" class="btn btn-secondary">取消</a>
+</form>

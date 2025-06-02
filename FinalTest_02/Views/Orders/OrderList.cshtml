@@ -1,11 +1,17 @@
-﻿
-@model List<FinalTest_02.Models.Order>
+﻿@model List<FinalTest_02.Models.Order>
 
 @{
     ViewData["Title"] = "訂單列表";
 }
 
 <h2>訂單列表</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">
+        @TempData["Message"]
+    </div>
+}
 
 <table class="table table-bordered table-striped">
     <thead>
@@ -31,12 +37,16 @@
                     <a asp-action="Delete" asp-route-id="@order.Id">刪除</a>
                 </td>
             </tr>
+
             <tr>
                 <td colspan="5">
                     <table class="table table-sm table-bordered">
                         <thead>
                             <tr>
+                                <th>選取</th>
                                 <th>商品名稱</th>
+                                <th>甜度</th>
+                                <th>冰塊</th>
                                 <th>數量</th>
                                 <th>調整數量</th>
                             </tr>
@@ -45,7 +55,12 @@
                             @foreach (var detail in order.OrderDetails)
                             {
                                 <tr>
+                                    <td>
+                                        <input type="checkbox" name="selectedDetailIds" value="@detail.Id" form="checkoutForm" />
+                                    </td>
                                     <td>@detail.Product.Name</td>
+                                    <td>@detail.Sweetness</td>
+                                    <td>@detail.Ice</td>
                                     <td>@detail.Quantity</td>
                                     <td>
                                         <form asp-action="ChangeQuantity" method="post" style="display:inline">
@@ -61,11 +76,19 @@
                                     </td>
                                 </tr>
                             }
+                            <script src="~/js/site.js"></script>
                         </tbody>
                     </table>
                 </td>
             </tr>
         }
-
     </tbody>
 </table>
+
+<!-- ✅ 置中結帳按鈕區塊 -->
+<div class="text-center mt-4">
+    <form asp-action="Checkout" method="get" id="checkoutForm">
+        <button type="submit" class="btn btn-primary btn-lg">結帳</button>
+    </form>
+
+</div> 

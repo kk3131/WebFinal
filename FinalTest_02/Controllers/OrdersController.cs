@@ -65,6 +65,76 @@ namespace FinalTest_02.Controllers
             return View(order);
         }
 
+        // 新增 Checkout GET 動作，顯示結帳畫面
+        [HttpGet]
+        public async Task<IActionResult> Checkout(int[] selectedDetailIds)
+        {
+            if (selectedDetailIds == null || selectedDetailIds.Length == 0)
+            {
+                TempData["Message"] = "請選擇至少一筆商品明細進行結帳。";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var orderDetails = await _context.OrderDetails
+                .Include(od => od.Product)
+                .Include(od => od.Order)
+                .Where(od => selectedDetailIds.Contains(od.Id))
+                .ToListAsync();
+
+            if (!orderDetails.Any())
+            {
+                TempData["Message"] = "選取的商品明細不存在。";
+                return RedirectToAction(nameof(Index));
+            }
+
+            decimal totalAmount = orderDetails.Sum(od => od.UnitPrice * od.Quantity);
+
+            var vm = new CheckoutViewModel
+            {
+                OrderDetails = orderDetails,
+                TotalAmount = totalAmount
+            };
+
+            return View(vm);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CheckoutConfirmed(int[] orderDetailIds)
+        {
+            if (orderDetailIds == null || orderDetailIds.Length == 0)
+            {
+                TempData["Message"] = "沒有選擇商品明細。";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var orderDetails = await _context.OrderDetails
+                .Include(od => od.Order)
+                .Where(od => orderDetailIds.Contains(od.Id))
+                .ToListAsync();
+
+            if (!orderDetails.Any())
+            {
+                TempData["Message"] = "商品明細不存在。";
+                return RedirectToAction(nameof(Index));
+            }
+
+            // 可選：若多筆 OrderDetail 屬於同一個 Order，更新 Order 狀態
+            var order = orderDetails.First().Order;
+            order.Status = "已付款"; // 假設 Order 有 Status 欄位
+
+
+            // 刪除選取的 OrderDetails
+            _context.OrderDetails.RemoveRange(orderDetails);
+
+            await _context.SaveChangesAsync();
+
+            TempData["Message"] = "結帳完成，已自動刪除商品明細！";
+            return RedirectToAction(nameof(Index));
+        }
+
+
         // 新增：處理前端 Modal 表單送出訂單明細的 POST Action
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -250,5 +320,7 @@ namespace FinalTest_02.Controllers
         {
             return _context.Orders.Any(e => e.Id == id);
         }
+
+
     }
 }
