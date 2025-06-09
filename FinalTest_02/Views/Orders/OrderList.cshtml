@@ -33,7 +33,7 @@
                 <td>@order.TotalAmount.ToString("C")</td>
                 <td>
                     <a asp-action="Details" asp-route-id="@order.Id">詳細</a> |
-                    <a asp-action="Edit" asp-route-id="@order.Id">編輯</a> |
+                    @* <a asp-action="Edit" asp-route-id="@order.Id">編輯</a> | *@
                     <a asp-action="Delete" asp-route-id="@order.Id">刪除</a>
                 </td>
             </tr>
