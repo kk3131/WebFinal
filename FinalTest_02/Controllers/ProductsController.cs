@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using FinalTest_02.Data;
 using FinalTest_02.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FinalTest_02.Controllers
 {
+    [Authorize]
     public class ProductsController : Controller
     {
         private readonly ApplicationDbContext _context;

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using FinalTest_02.Data;
 using FinalTest_02.Models;
+using System.Security.Claims;
 
 namespace FinalTest_02.Controllers
 {
@@ -24,12 +25,14 @@ namespace FinalTest_02.Controllers
         {
             if (id == null)
             {
-                // 沒傳 productId 就顯示全部訂單
+                // ✅ 顯示目前使用者的訂單（已登入者）
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var orders = await _context.Orders
+                    .Where(o => o.ApplicationUserId == userId)
                     .Include(o => o.OrderDetails)
-                        .ThenInclude(od => od.Product) // ★ 加上這行，載入商品資訊
+                        .ThenInclude(od => od.Product)
                     .ToListAsync();
-                return View("OrderList", orders); // 可自訂 View 顯示所有訂單
+                return View("OrderList", orders);
             }
 
             // 取得商品資料
@@ -140,6 +143,8 @@ namespace FinalTest_02.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToOrder(int ProductId, string Sweetness, string Ice, int Quantity)
         {
+           
+
             if (Quantity <= 0)
             {
                 ModelState.AddModelError("", "數量必須大於0");
@@ -154,6 +159,11 @@ namespace FinalTest_02.Controllers
                 return NotFound();
             }
 
+            //自動記錄目前登入者的 ID
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return Challenge(); // 未登入就強制登入
+
             // 建立訂單
             var order = new Order
             {
@@ -162,6 +172,7 @@ namespace FinalTest_02.Controllers
                 CustomerPhone = "0912345678",
                 CustomerEmail = "test@example.com",
                 TotalAmount = product.Price * Quantity,
+                ApplicationUserId = userId, // ✅ 關聯到使用者
                 OrderDetails = new List<OrderDetail>()
             };
 
