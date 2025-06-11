@@ -101,6 +101,18 @@ namespace FinalTest_02.Controllers
             return View(vm);
         }
 
+        // 管理者查看所有用戶訂單明細
+        public async Task<IActionResult> AdminIndex()
+        {
+            var orders = await _context.Orders
+             .Include(o => o.ApplicationUser)  // 這裡改成 ApplicationUser
+             .Include(o => o.OrderDetails)
+                 .ThenInclude(od => od.Product)
+             .ToListAsync();
+
+            return View(orders);
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]

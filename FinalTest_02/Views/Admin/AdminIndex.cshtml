@@ -1,0 +1,36 @@
+﻿@model List<FinalTest_02.Models.Order>
+
+@{
+    ViewData["Title"] = "所有用戶訂單明細";
+}
+
+<h1>所有用戶訂單明細</h1>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>訂單編號</th>
+            <th>用戶名稱</th>
+            <th>訂單日期</th>
+            <th>商品名稱</th>
+            <th>數量</th>
+            <th>單價</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var order in Model)
+        {
+            foreach (var detail in order.OrderDetails)
+            {
+                <tr>
+                    <td>@order.Id</td>
+                    <td>@order.ApplicationUser?.UserName</td>
+                    <td>@order.OrderDate.ToString("yyyy-MM-dd")</td>
+                    <td>@detail.Product.Name</td>
+                    <td>@detail.Quantity</td>
+                    <td>@detail.UnitPrice.ToString("C")</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

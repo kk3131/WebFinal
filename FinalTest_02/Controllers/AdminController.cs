@@ -44,7 +44,19 @@ namespace FinalTest_02.Controllers
             }).ToList();
 
             return View(adminUserViewModel);
+
         }
+        public IActionResult AdminIndex()
+        {
+            var orders = _context.Orders
+                .Include(o => o.ApplicationUser)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Product)
+                .ToList();
+
+            return View(orders);
+        }
+
         // 取得編輯頁面（GET）
         public async Task<IActionResult> Edit(string id)
         {
@@ -154,6 +166,18 @@ namespace FinalTest_02.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        public async Task<IActionResult> AllOrders()
+        {
+            var orders = await _context.Orders
+                .Include(o => o.ApplicationUser)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Product)
+                .ToListAsync();
+
+            return View(orders); 
+        }
+
 
         private bool UserExists(string id)
         {
