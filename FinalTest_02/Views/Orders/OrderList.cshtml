@@ -1,4 +1,5 @@
 ﻿@model List<FinalTest_02.Models.Order>
+@using System.Linq
 
 @{
     ViewData["Title"] = "訂單列表";
@@ -14,81 +15,63 @@
 }
 
 <table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>訂單編號</th>
-            <th>顧客名稱</th>
-            <th>訂單日期</th>
-            <th>總金額</th>
-            <th>操作</th>
-        </tr>
-    </thead>
     <tbody>
         @foreach (var order in Model)
         {
-            <tr>
-                <td>@order.Id</td>
-                <td>@order.CustomerName</td>
-                <td>@order.OrderDate.ToString("yyyy-MM-dd HH:mm")</td>
-                <td>@order.TotalAmount.ToString("C")</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@order.Id">詳細</a> |
-                    @* <a asp-action="Edit" asp-route-id="@order.Id">編輯</a> | *@
-                    <a asp-action="Delete" asp-route-id="@order.Id">刪除</a>
-                </td>
-            </tr>
-
-            <tr>
-                <td colspan="5">
-                    <table class="table table-sm table-bordered">
-                        <thead>
-                            <tr>
-                                <th>選取</th>
-                                <th>商品名稱</th>
-                                <th>甜度</th>
-                                <th>冰塊</th>
-                                <th>數量</th>
-                                <th>調整數量</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var detail in order.OrderDetails)
-                            {
+            @if (order.OrderDetails != null && order.OrderDetails.Any())
+            {
+                <tr>
+                    <td colspan="5">
+                        <table class="table table-sm table-bordered">
+                            <thead>
                                 <tr>
-                                    <td>
-                                        <input type="checkbox" name="selectedDetailIds" value="@detail.Id" form="checkoutForm" />
-                                    </td>
-                                    <td>@detail.Product.Name</td>
-                                    <td>@detail.Sweetness</td>
-                                    <td>@detail.Ice</td>
-                                    <td>@detail.Quantity</td>
-                                    <td>
-                                        <form asp-action="ChangeQuantity" method="post" style="display:inline">
-                                            <input type="hidden" name="orderDetailId" value="@detail.Id" />
-                                            <input type="hidden" name="change" value="1" />
-                                            <button type="submit" class="btn btn-success btn-sm">＋</button>
-                                        </form>
-                                        <form asp-action="ChangeQuantity" method="post" style="display:inline">
-                                            <input type="hidden" name="orderDetailId" value="@detail.Id" />
-                                            <input type="hidden" name="change" value="-1" />
-                                            <button type="submit" class="btn btn-danger btn-sm">－</button>
-                                        </form>
-                                    </td>
+                                    <th>選取</th>
+                                    <th>商品名稱</th>
+                                    <th>甜度</th>
+                                    <th>冰塊</th>
+                                    <th>數量</th>
+                                    <th>調整數量</th>
                                 </tr>
-                            }
-                            <script src="~/js/site.js"></script>
-                        </tbody>
-                    </table>
-                </td>
-            </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var detail in order.OrderDetails)
+                                {
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" name="selectedDetailIds" value="@detail.Id" form="checkoutForm" />
+                                        </td>
+                                        <td>@detail.Product.Name</td>
+                                        <td>@detail.Sweetness</td>
+                                        <td>@detail.Ice</td>
+                                        <td>@detail.Quantity</td>
+                                        <td>
+                                            <form asp-action="ChangeQuantity" method="post" style="display:inline">
+                                                <input type="hidden" name="orderDetailId" value="@detail.Id" />
+                                                <input type="hidden" name="change" value="1" />
+                                                <button type="submit" class="btn btn-success btn-sm">＋</button>
+                                            </form>
+                                            <form asp-action="ChangeQuantity" method="post" style="display:inline">
+                                                <input type="hidden" name="orderDetailId" value="@detail.Id" />
+                                                <input type="hidden" name="change" value="-1" />
+                                                <button type="submit" class="btn btn-danger btn-sm">－</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            }
         }
     </tbody>
 </table>
 
-<!-- ✅ 置中結帳按鈕區塊 -->
+<!-- ✅ 結帳按鈕 -->
 <div class="text-center mt-4">
     <form asp-action="Checkout" method="get" id="checkoutForm">
         <button type="submit" class="btn btn-primary btn-lg">結帳</button>
     </form>
+</div>
 
-</div> 
+<script src="~/js/site.js"></script>
