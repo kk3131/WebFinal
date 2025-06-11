@@ -1,8 +1,46 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "首頁";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="text-center mt-5">
+    <h1 class="display-4 fw-bold text-primary">歡迎來到 劉一手 飲品商城</h1>
+    @* <p class="lead text-secondary">劉一手 買一手 大手牽小手</p> *@
+    <p class="fs-4 fw-bold text-danger text-center mt-3">
+        💥 劉一手 買一手 大手牽小手！
+    </p>
+
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card shadow-lg border-0 rounded-4">
+                    <div class="card-body">
+                        <h3 class="card-title text-success fw-bold">💡 關於本網站</h3>
+                        <p class="card-text fs-5">
+                            本商城展示一系列高品質飲品，包含多款 <strong>咖啡、茶飲、果汁、特調</strong> 飲品，男女老少都適合。
+                        </p>
+                        <p class="card-text fs-5">
+                            若您尚未登入，請先註冊帳號；登入後可瀏覽商品與查看個人訂單紀錄。
+                        </p>
+
+                       
+                            <div class="d-flex justify-content-center mt-4 flex-wrap gap-3">
+                                <a class="btn btn-outline-primary btn-lg" asp-controller="Products" asp-action="Index">
+                                    🔍 瀏覽商品
+                                </a>
+                                <a class="btn btn-outline-success btn-lg" asp-area="Identity" asp-page="/Account/Register">
+                                    📝 註冊會員
+                                </a>
+                                <a class="btn btn-outline-warning btn-lg" asp-area="Identity" asp-page="/Account/Login">
+                                    🔑 登入會員
+                                </a>
+                            </div>
+
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+    </div>
 </div>
