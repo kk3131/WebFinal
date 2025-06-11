@@ -1,0 +1,37 @@
+﻿@model List<FinalTest_02.Models.AdminUserViewModel>
+
+@{
+    ViewData["Title"] = "管理帳戶";
+}
+
+<h1>帳戶管理</h1>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>帳號</th>
+            <th>姓名</th>
+            <th>地址</th>
+            <th>Email</th>
+            <th>訂單數量</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.UserName</td>
+                <td>@user.Name</td>
+                <td>@user.Address</td>
+                <td>@user.Email</td>
+                <td>@user.Orders.Count</td>
+                <td>
+                    <!-- 可之後加入編輯/刪除功能 -->
+                    <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-primary">編輯</a>
+                    <a asp-action="Delete" asp-route-id="@user.Id" class="btn btn-sm btn-danger">刪除</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

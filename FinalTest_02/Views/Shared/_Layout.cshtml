@@ -23,19 +23,37 @@
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Products" asp-action="Index">Products</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Products" asp-action="Index">商品</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Orders" asp-action="Index">Orders</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Orders" asp-action="Index">購物車</a>
                         </li>
-                    </ul>
-                    <!-- ✅ 登入狀態顯示 -->
-                    <ul class="navbar-nav">
-                        @if (User.Identity.IsAuthenticated)
+
+                        @* 只有管理者才顯示「管理帳戶」 *@
+                        @if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <span class="nav-link">Welcome @User.Identity.Name</span>
+                                <a class="nav-link text-dark" asp-controller="Admin" asp-action="Index">管理帳戶</a>
                             </li>
+                        }
+                    </ul>
+
+                    <!-- ✅ 登入狀態顯示 -->
+                    <ul class="navbar-nav">
+                        @if (User?.Identity?.IsAuthenticated == true)
+                        {
+                            @* 管理者字樣放前面 *@
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item">
+                                    <span class="nav-link text-danger fw-bold">管理者</span>
+                                </li>
+                            }
+
+                            <li class="nav-item">
+                                <span class="nav-link">Welcome @User.Identity?.Name</span>
+                            </li>
+
                             <li class="nav-item">
                                 <form method="post" asp-area="Identity" asp-page="/Account/Logout" class="form-inline">
                                     <button type="submit" class="nav-link btn btn-link text-dark">Logout</button>

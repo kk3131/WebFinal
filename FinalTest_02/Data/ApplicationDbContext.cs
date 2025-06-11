@@ -43,7 +43,9 @@ namespace FinalTest_02.Data
             // 自訂模型設定
             modelBuilder.Entity<Order>()
                 .Property(o => o.TotalAmount)
-                .HasColumnType("decimal(18,2)");
+                .HasColumnType("decimal(18,2)")
+                .HasDefaultValue(0)
+                .IsRequired();
 
             modelBuilder.Entity<OrderDetail>()
                 .Property(od => od.UnitPrice)

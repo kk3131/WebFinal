@@ -1,0 +1,42 @@
+﻿@model FinalTest_02.Models.AdminUserViewModel
+
+@{
+    ViewData["Title"] = "編輯使用者資料";
+}
+
+<h2>編輯使用者資料</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group">
+        <label asp-for="UserName">帳號 (不可編輯)</label>
+        <input asp-for="UserName" class="form-control" readonly />
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Name">姓名</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Address">地址</label>
+        <input asp-for="Address" class="form-control" />
+        <span asp-validation-for="Address" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Email">Email (不可編輯)</label>
+        <input asp-for="Email" class="form-control" readonly />
+    </div>
+
+    <button type="submit" class="btn btn-primary">儲存</button>
+    <a asp-action="Index" class="btn btn-secondary">取消</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
