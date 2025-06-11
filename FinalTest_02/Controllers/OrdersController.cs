@@ -135,19 +135,16 @@ namespace FinalTest_02.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // 可選：若多筆 OrderDetail 屬於同一個 Order，更新 Order 狀態
+            // 更新訂單狀態為已付款，不刪除明細
             var order = orderDetails.First().Order;
-            order.Status = "已付款"; // 假設 Order 有 Status 欄位
-
-
-            // 刪除選取的 OrderDetails
-            _context.OrderDetails.RemoveRange(orderDetails);
-
+            order.Status = "已付款";
             await _context.SaveChangesAsync();
 
-            TempData["Message"] = "結帳完成，已自動刪除商品明細！";
+            TempData["Message"] = "結帳完成！";
+
             return RedirectToAction(nameof(Index));
         }
+
 
 
         // 新增：處理前端 Modal 表單送出訂單明細的 POST Action

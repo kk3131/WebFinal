@@ -13,8 +13,11 @@
             <th>用戶名稱</th>
             <th>訂單日期</th>
             <th>商品名稱</th>
+            <th>甜度</th>   
+            <th>冰塊</th>   
             <th>數量</th>
             <th>單價</th>
+            
         </tr>
     </thead>
     <tbody>
@@ -27,8 +30,11 @@
                     <td>@order.ApplicationUser?.UserName</td>
                     <td>@order.OrderDate.ToString("yyyy-MM-dd")</td>
                     <td>@detail.Product.Name</td>
+                    <td>@detail.Sweetness</td>
+                    <td>@detail.Ice</td>
                     <td>@detail.Quantity</td>
                     <td>@detail.UnitPrice.ToString("C")</td>
+                         
                 </tr>
             }
         }

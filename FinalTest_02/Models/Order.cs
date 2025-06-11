@@ -19,7 +19,7 @@ namespace FinalTest_02.Models
         public string Status { get; set; } = "待處理";
 
         // ✅ 關聯到登入使用者（Identity 使用者）
-        public string ApplicationUserId { get; set; } = null!;
+        public string? ApplicationUserId { get; set; } = null!;
 
         // ✅ 正確的導覽屬性（Entity Model）
         public ApplicationUser ApplicationUser { get; set; } = null!;
