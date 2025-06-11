@@ -13,16 +13,19 @@
             <th>用戶名稱</th>
             <th>訂單日期</th>
             <th>商品名稱</th>
-            <th>甜度</th>   
-            <th>冰塊</th>   
+            <th>甜度</th>
+            <th>冰塊</th>
             <th>數量</th>
-            <th>單價</th>
-            
+            <th>總金額</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var order in Model)
         {
+            // 計算總金額
+            var total = order.OrderDetails.Sum(d => d.UnitPrice * d.Quantity);
+            bool isFirstRow = true;
+
             foreach (var detail in order.OrderDetails)
             {
                 <tr>
@@ -33,8 +36,7 @@
                     <td>@detail.Sweetness</td>
                     <td>@detail.Ice</td>
                     <td>@detail.Quantity</td>
-                    <td>@detail.UnitPrice.ToString("C")</td>
-                         
+                    <td>@(detail.UnitPrice * detail.Quantity)</td>
                 </tr>
             }
         }
