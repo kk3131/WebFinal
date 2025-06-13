@@ -138,6 +138,12 @@ namespace FinalTest_02.Controllers
             // 更新訂單狀態為已付款，不刪除明細
             var order = orderDetails.First().Order;
             order.Status = "已付款";
+
+            // 標記為已付款
+            foreach (var detail in orderDetails)
+            {
+                detail.IsPaid = true;
+            }
             await _context.SaveChangesAsync();
 
             TempData["Message"] = "結帳完成！";

@@ -14,64 +14,79 @@
     </div>
 }
 
-<table class="table table-bordered table-striped">
-    <tbody>
-        @foreach (var order in Model)
-        {
-            @if (order.OrderDetails != null && order.OrderDetails.Any())
+<form asp-action="Checkout" method="get" id="checkoutForm">
+    <table class="table table-bordered table-striped">
+        <tbody>
+            @foreach (var order in Model)
             {
-                <tr>
-                    <td colspan="5">
-                        <table class="table table-sm table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>選取</th>
-                                    <th>商品名稱</th>
-                                    <th>甜度</th>
-                                    <th>冰塊</th>
-                                    <th>數量</th>
-                                    <th>調整數量</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var detail in order.OrderDetails)
-                                {
+                if (order.OrderDetails != null && order.OrderDetails.Any())
+                {
+                    <tr>
+                        <td colspan="6">
+                            <strong>訂單狀態：</strong> @(string.IsNullOrEmpty(order.Status) ? "未付款" : order.Status)
+                            <table class="table table-sm table-bordered mt-2">
+                                <thead>
                                     <tr>
-                                        <td>
-                                            <input type="checkbox" name="selectedDetailIds" value="@detail.Id" form="checkoutForm" />
-                                        </td>
-                                        <td>@detail.Product.Name</td>
-                                        <td>@detail.Sweetness</td>
-                                        <td>@detail.Ice</td>
-                                        <td>@detail.Quantity</td>
-                                        <td>
-                                            <form asp-action="ChangeQuantity" method="post" style="display:inline">
-                                                <input type="hidden" name="orderDetailId" value="@detail.Id" />
-                                                <input type="hidden" name="change" value="1" />
-                                                <button type="submit" class="btn btn-success btn-sm">＋</button>
-                                            </form>
-                                            <form asp-action="ChangeQuantity" method="post" style="display:inline">
-                                                <input type="hidden" name="orderDetailId" value="@detail.Id" />
-                                                <input type="hidden" name="change" value="-1" />
-                                                <button type="submit" class="btn btn-danger btn-sm">－</button>
-                                            </form>
-                                        </td>
+                                        <th>選取</th>
+                                        <th>商品名稱</th>
+                                        <th>甜度</th>
+                                        <th>冰塊</th>
+                                        <th>數量</th>
+                                        <th>調整數量</th>
                                     </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </td>
-                </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var detail in order.OrderDetails)
+                                    {
+                                        <tr>
+                                            <td>
+                                                @if (order.Status != "已付款")
+                                                {
+                                                    <input type="checkbox" name="selectedDetailIds" value="@detail.Id" form="checkoutForm" />
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">✓</span>
+                                                }
+                                            </td>
+                                            <td>@detail.Product.Name</td>
+                                            <td>@detail.Sweetness</td>
+                                            <td>@detail.Ice</td>
+                                            <td>@detail.Quantity</td>
+                                            <td>
+                                                @if (order.Status != "已付款")
+                                                {
+                                                    <form asp-action="ChangeQuantity" method="post" style="display:inline">
+                                                        <input type="hidden" name="orderDetailId" value="@detail.Id" />
+                                                        <input type="hidden" name="change" value="1" />
+                                                        <button type="submit" class="btn btn-success btn-sm">＋</button>
+                                                    </form>
+                                                    <form asp-action="ChangeQuantity" method="post" style="display:inline">
+                                                        <input type="hidden" name="orderDetailId" value="@detail.Id" />
+                                                        <input type="hidden" name="change" value="-1" />
+                                                        <button type="submit" class="btn btn-danger btn-sm">－</button>
+                                                    </form>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">已結帳</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                }
             }
-        }
-    </tbody>
-</table>
+        </tbody>
+    </table>
 
-<!-- ✅ 結帳按鈕 -->
-<div class="text-center mt-4">
-    <form asp-action="Checkout" method="get" id="checkoutForm">
+    <!-- ✅ 結帳按鈕 -->
+    <div class="text-center mt-4">
         <button type="submit" class="btn btn-primary btn-lg">結帳</button>
-    </form>
-</div>
+    </div>
+</form>
 
 <script src="~/js/site.js"></script>

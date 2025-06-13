@@ -14,6 +14,7 @@ namespace FinalTest_02.Models
         public decimal UnitPrice { get; set; }
         public required Product Product { get; set; } = null!;
         public required Order Order { get; set; } = null!;
+        public bool IsPaid { get; set; } = false;
         //public ApplicationUser ApplicationUser { get; set; } = null!;
     }
 }
