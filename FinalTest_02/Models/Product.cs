@@ -9,7 +9,7 @@
         public string Category { get; set; } = string.Empty; // 例如: 咖啡、茶、果汁等
         public string ImageUrl { get; set; } = string.Empty;
         // ✅ 新增庫存欄位
-    public int Stock { get; set; }
+        public int Stock { get; set; } = 1000;
 
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
     }

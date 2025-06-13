@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization; // 加這行限制 Admin
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using FinalTest_02.Data;
-using FinalTest_02.Models;  // ← 確保有引用 ApplicationUser 所在命名空間
+using FinalTest_02.Models;
 
 namespace FinalTest_02.Controllers
 {
+    [Authorize(Roles = "Admin")] // ← 限制整個 Controller 僅限 Admin 存取
     public class AdminController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -17,15 +19,68 @@ namespace FinalTest_02.Controllers
             _context = context;
         }
 
+        // ========== 新增庫存頁面 ==========
+
+        //// 顯示所有產品與目前庫存
+        //public async Task<IActionResult> Stock()
+        //{
+        //    var products = await _context.Products.ToListAsync();
+        //    return View(products);
+        //}
+
+        //// 更新庫存數量
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> UpdateStock(int productId, int newQuantity)
+        //{
+        //    var product = await _context.Products.FindAsync(productId);
+        //    if (product == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    product.Stock = newQuantity;
+        //    await _context.SaveChangesAsync();
+
+        //    return RedirectToAction(nameof(Stock));
+        //}
+
+        // 顯示所有產品與目前庫存
+        public async Task<IActionResult> Stock()
+        {
+            var products = await _context.Products.ToListAsync();
+            return View(products);
+        }
+
+        // 更新庫存數量
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateStock(int productId, int newStock)
+        {
+            var product = await _context.Products.FindAsync(productId);
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            product.Stock = newStock;
+            await _context.SaveChangesAsync();
+
+            TempData["Message"] = $"{product.Name} 的庫存已更新為 {newStock}。";
+            return RedirectToAction(nameof(Stock));
+        }
+
+
+
+        // =======（以下保留你原本的程式碼）=======
+
         public async Task<IActionResult> Index()
         {
-            // 先找出 Admin 角色的 Id
             var adminRoleId = await _context.Roles
                 .Where(r => r.Name == "Admin")
                 .Select(r => r.Id)
                 .FirstOrDefaultAsync();
 
-            // 查出不是 Admin 角色的用戶（連帶 Include 訂單與產品）
             var users = await _context.Users
                 .Where(u => !_context.UserRoles.Any(ur => ur.UserId == u.Id && ur.RoleId == adminRoleId))
                 .Include(u => u.Orders)
@@ -44,8 +99,8 @@ namespace FinalTest_02.Controllers
             }).ToList();
 
             return View(adminUserViewModel);
-
         }
+
         public IActionResult AdminIndex()
         {
             var orders = _context.Orders
@@ -57,19 +112,14 @@ namespace FinalTest_02.Controllers
             return View(orders);
         }
 
-        // 取得編輯頁面（GET）
         public async Task<IActionResult> Edit(string id)
         {
             if (string.IsNullOrEmpty(id))
-            {
                 return NotFound();
-            }
 
             var user = await _context.Users.FindAsync(id);
             if (user == null)
-            {
                 return NotFound();
-            }
 
             var model = new AdminUserViewModel
             {
@@ -84,23 +134,17 @@ namespace FinalTest_02.Controllers
             return View(model);
         }
 
-        // 編輯資料送出（POST）
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(AdminUserViewModel model)
         {
             if (!ModelState.IsValid)
-            {
                 return View(model);
-            }
 
             var user = await _context.Users.FindAsync(model.Id);
             if (user == null)
-            {
                 return NotFound();
-            }
 
-            // 只能修改可變欄位（通常不修改 UserName 或 Email）
             user.Name = model.Name;
             user.Address = model.Address;
 
@@ -112,33 +156,22 @@ namespace FinalTest_02.Controllers
             catch (DbUpdateConcurrencyException)
             {
                 if (!UserExists(model.Id))
-                {
                     return NotFound();
-                }
                 else
-                {
                     throw;
-                }
             }
 
             return RedirectToAction(nameof(Index));
         }
 
-        // 刪除確認頁面（GET）
         public async Task<IActionResult> Delete(string id)
         {
             if (string.IsNullOrEmpty(id))
-            {
                 return NotFound();
-            }
 
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == id);
-
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
             if (user == null)
-            {
                 return NotFound();
-            }
 
             var model = new AdminUserViewModel
             {
@@ -152,7 +185,6 @@ namespace FinalTest_02.Controllers
             return View(model);
         }
 
-        // 刪除執行（POST）
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)
@@ -175,15 +207,12 @@ namespace FinalTest_02.Controllers
                     .ThenInclude(od => od.Product)
                 .ToListAsync();
 
-            return View(orders); 
+            return View(orders);
         }
-
 
         private bool UserExists(string id)
         {
             return _context.Users.Any(e => e.Id == id);
         }
-
-
     }
 }

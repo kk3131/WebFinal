@@ -114,6 +114,44 @@ namespace FinalTest_02.Controllers
         }
 
 
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> CheckoutConfirmed(int[] orderDetailIds)
+        //{
+        //    if (orderDetailIds == null || orderDetailIds.Length == 0)
+        //    {
+        //        TempData["Message"] = "沒有選擇商品明細。";
+        //        return RedirectToAction(nameof(Index));
+        //    }
+
+        //    var orderDetails = await _context.OrderDetails
+        //        .Include(od => od.Order)
+        //        .Where(od => orderDetailIds.Contains(od.Id))
+        //        .ToListAsync();
+
+        //    if (!orderDetails.Any())
+        //    {
+        //        TempData["Message"] = "商品明細不存在。";
+        //        return RedirectToAction(nameof(Index));
+        //    }
+
+        //    // 更新訂單狀態為已付款，不刪除明細
+        //    var order = orderDetails.First().Order;
+        //    order.Status = "已付款";
+
+        //    // 標記為已付款
+        //    foreach (var detail in orderDetails)
+        //    {
+        //        detail.IsPaid = true;
+        //    }
+        //    await _context.SaveChangesAsync();
+
+        //    TempData["Message"] = "結帳完成！";
+
+        //    return RedirectToAction(nameof(Index));
+        //}
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CheckoutConfirmed(int[] orderDetailIds)
@@ -126,6 +164,7 @@ namespace FinalTest_02.Controllers
 
             var orderDetails = await _context.OrderDetails
                 .Include(od => od.Order)
+                .Include(od => od.Product)
                 .Where(od => orderDetailIds.Contains(od.Id))
                 .ToListAsync();
 
@@ -135,51 +174,173 @@ namespace FinalTest_02.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // 更新訂單狀態為已付款，不刪除明細
+            // ✅ 再次檢查每個商品是否還有足夠庫存
+            foreach (var detail in orderDetails)
+            {
+                if (detail.Product.Stock < detail.Quantity)
+                {
+                    TempData["Message"] = $"商品【{detail.Product.Name}】 庫存不足，請重新確認訂單。";
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+
+            // ✅ 所有商品庫存足夠，進行扣庫存
+            foreach (var detail in orderDetails)
+            {
+                detail.Product.Stock -= detail.Quantity;
+                detail.IsPaid = true;
+            }
+
             var order = orderDetails.First().Order;
             order.Status = "已付款";
 
-            // 標記為已付款
-            foreach (var detail in orderDetails)
-            {
-                detail.IsPaid = true;
-            }
             await _context.SaveChangesAsync();
 
-            TempData["Message"] = "結帳完成！";
+            TempData["Message"] = "結帳成功，已扣除庫存。";
 
             return RedirectToAction(nameof(Index));
         }
 
 
 
-        // 新增：處理前端 Modal 表單送出訂單明細的 POST Action
+
+        //// 新增：處理前端 Modal 表單送出訂單明細的 POST Action
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> AddToOrder(int ProductId, string Sweetness, string Ice, int Quantity)
+        //{
+
+
+        //    if (Quantity <= 0)
+        //    {
+        //        ModelState.AddModelError("", "數量必須大於0");
+        //        // 可改成跳回原頁或顯示錯誤訊息
+        //        return RedirectToAction(nameof(Index), new { id = ProductId });
+        //    }
+
+        //    // 找商品
+        //    var product = await _context.Products.FindAsync(ProductId);
+        //    if (product == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    //自動記錄目前登入者的 ID
+        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //    if (userId == null)
+        //        return Challenge(); // 未登入就強制登入
+
+        //    // 建立訂單
+        //    var order = new Order
+        //    {
+        //        OrderDate = DateTime.Now,
+        //        CustomerName = "測試用戶",
+        //        CustomerPhone = "0912345678",
+        //        CustomerEmail = "test@example.com",
+        //        TotalAmount = product.Price * Quantity,
+        //        ApplicationUserId = userId, // ✅ 關聯到使用者
+        //        OrderDetails = new List<OrderDetail>()
+        //    };
+
+        //    // 建立訂單明細
+        //    var orderDetail = new OrderDetail
+        //    {
+        //        ProductId = product.Id,
+        //        Product = product,
+        //        Quantity = Quantity,
+        //        UnitPrice = product.Price,
+        //        Sweetness = Sweetness,
+        //        Ice = Ice,
+        //        Order = order
+        //    };
+
+        //    order.OrderDetails.Add(orderDetail);
+
+        //    _context.Orders.Add(order);
+        //    await _context.SaveChangesAsync();
+
+        //    // 新增後跳回產品列表（可改為訂單列表或訂單明細頁）
+        //    return RedirectToAction(nameof(Index), "Products");
+        //}
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> AddToOrder(int ProductId, string Sweetness, string Ice, int Quantity)
+        //{
+        //    if (Quantity <= 0)
+        //    {
+        //        ModelState.AddModelError("", "數量必須大於0");
+        //        return RedirectToAction(nameof(Index), new { id = ProductId });
+        //    }
+
+        //    var product = await _context.Products.FindAsync(ProductId);
+        //    if (product == null)
+        //        return NotFound();
+
+        //    if (product.Stock < Quantity)
+        //    {
+        //        TempData["Message"] = $"【{product.Name}】 庫存不足，目前庫存：{product.Stock} 件";
+        //        return RedirectToAction(nameof(Index), new { id = ProductId });
+        //    }
+
+        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //    if (userId == null)
+        //        return Challenge();
+
+        //    // 扣除庫存
+        //    product.Stock -= Quantity;
+
+        //    var order = new Order
+        //    {
+        //        OrderDate = DateTime.Now,
+        //        CustomerName = "測試用戶",
+        //        CustomerPhone = "0912345678",
+        //        CustomerEmail = "test@example.com",
+        //        TotalAmount = product.Price * Quantity,
+        //        ApplicationUserId = userId,
+        //        OrderDetails = new List<OrderDetail>()
+        //    };
+
+        //    var orderDetail = new OrderDetail
+        //    {
+        //        ProductId = product.Id,
+        //        Product = product,
+        //        Quantity = Quantity,
+        //        UnitPrice = product.Price,
+        //        Sweetness = Sweetness,
+        //        Ice = Ice,
+        //        Order = order
+        //    };
+
+        //    order.OrderDetails.Add(orderDetail);
+
+        //    _context.Orders.Add(order);
+        //    await _context.SaveChangesAsync();
+
+        //    TempData["Message"] = $"成功下訂【{product.Name}】，已扣除庫存 {Quantity} 件。";
+
+        //    return RedirectToAction(nameof(Index), "Products");
+        //}
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToOrder(int ProductId, string Sweetness, string Ice, int Quantity)
         {
-           
-
             if (Quantity <= 0)
             {
                 ModelState.AddModelError("", "數量必須大於0");
-                // 可改成跳回原頁或顯示錯誤訊息
                 return RedirectToAction(nameof(Index), new { id = ProductId });
             }
 
-            // 找商品
             var product = await _context.Products.FindAsync(ProductId);
             if (product == null)
-            {
                 return NotFound();
-            }
 
-            //自動記錄目前登入者的 ID
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (userId == null)
-                return Challenge(); // 未登入就強制登入
+                return Challenge();
 
-            // 建立訂單
+            // ❌ 不在此處扣庫存，只建立訂單與明細
             var order = new Order
             {
                 OrderDate = DateTime.Now,
@@ -187,11 +348,11 @@ namespace FinalTest_02.Controllers
                 CustomerPhone = "0912345678",
                 CustomerEmail = "test@example.com",
                 TotalAmount = product.Price * Quantity,
-                ApplicationUserId = userId, // ✅ 關聯到使用者
+                ApplicationUserId = userId,
+                Status = "未付款",
                 OrderDetails = new List<OrderDetail>()
             };
 
-            // 建立訂單明細
             var orderDetail = new OrderDetail
             {
                 ProductId = product.Id,
@@ -208,9 +369,12 @@ namespace FinalTest_02.Controllers
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
-            // 新增後跳回產品列表（可改為訂單列表或訂單明細頁）
+            TempData["Message"] = $"已將【{product.Name}】加入訂單，尚未付款與扣庫存。";
+
             return RedirectToAction(nameof(Index), "Products");
         }
+
+
 
         // 顯示已儲存訂單詳細資料
         public async Task<IActionResult> Details(int? id)

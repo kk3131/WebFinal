@@ -1,0 +1,40 @@
+﻿@model List<FinalTest_02.Models.Product>
+
+@{
+    ViewData["Title"] = "庫存管理";
+}
+
+<h1>庫存管理</h1>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>產品名稱</th>
+            <th>目前庫存</th>
+            <th>設定新庫存</th>
+            
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Stock</td>
+                <td>
+                    <form asp-action="UpdateStock" method="post" style="display:inline;">
+                        <input type="hidden" name="productId" value="@item.Id" />
+                        <input type="number" name="newStock" value="@item.Stock" min="0" />
+                        <button type="submit" class="btn btn-primary btn-sm">更新庫存</button>
+                    </form>
+                </td>
+                
+            </tr>
+        }
+    </tbody>
+</table>
