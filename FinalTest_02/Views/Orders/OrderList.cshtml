@@ -20,6 +20,7 @@
 @if (unpaidOrders.Any())
 {
     <form asp-action="Checkout" method="get" id="checkoutForm">
+        @Html.AntiForgeryToken()
         <table class="table table-bordered table-striped">
             <tbody>
                 @foreach (var order in unpaidOrders)
@@ -50,13 +51,16 @@
                                                 <td>@detail.Product.Name</td>
                                                 <td>@detail.Sweetness</td>
                                                 <td>@detail.Ice</td>
-                                                <td>@detail.Quantity</td>
+                                                <td class="current-quantity" data-id="@detail.Id">@detail.Quantity</td>
                                                 <td>
-                                                    <input type="number" class="form-control quantity-input"
-                                                           data-id="@detail.Id"
-                                                           value="@detail.Quantity"
-                                                           min="1"
-                                                           style="width: 80px;" />
+                                                    <div class="d-flex align-items-center">
+                                                        <input type="number" class="form-control quantity-input me-2"
+                                                               data-id="@detail.Id"
+                                                               value="@detail.Quantity"
+                                                               min="1"
+                                                               style="width: 80px;" />
+                                                        <span class="status-message" id="status-@detail.Id" style="min-width: 60px;"></span>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         }
@@ -136,6 +140,8 @@ else
                 const input = $(this);
                 const id = input.data("id");
                 const quantity = input.val();
+                const statusSpan = $("#status-" + id);
+                const token = $('input[name="__RequestVerificationToken"]').val();
 
                 if (quantity < 1) {
                     alert("數量不能小於 1");
@@ -143,19 +149,25 @@ else
                     return;
                 }
 
+                statusSpan.text("更新中...").css("color", "#888");
+
                 $.ajax({
                     url: '/Orders/ChangeQuantity',
                     type: 'POST',
                     data: {
                         orderDetailId: id,
                         newQuantity: quantity,
-                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        __RequestVerificationToken: token
                     },
                     success: function () {
-                        console.log("更新成功");
+                        $(".current-quantity[data-id='" + id + "']").text(quantity);
+                        statusSpan.html("✅").css("color", "green");
+                        setTimeout(() => {
+                            statusSpan.fadeOut(300, () => statusSpan.text("").show());
+                        }, 1200);
                     },
                     error: function () {
-                        alert("更新失敗！");
+                        statusSpan.html("❌").css("color", "red");
                     }
                 });
             });
