@@ -3,6 +3,8 @@
 
 @{
     ViewData["Title"] = "訂單列表";
+    var unpaidOrders = Model.Where(o => o.Status != "已付款").ToList();
+    var paidOrders = Model.Where(o => o.Status == "已付款").ToList();
 }
 
 <h2>訂單列表</h2>
@@ -14,48 +16,43 @@
     </div>
 }
 
-<form asp-action="Checkout" method="get" id="checkoutForm">
-    <table class="table table-bordered table-striped">
-        <tbody>
-            @foreach (var order in Model)
-            {
-                if (order.OrderDetails != null && order.OrderDetails.Any())
+<!-- 🔴 未付款訂單區塊 -->
+<h4 class="text-danger">未付款訂單</h4>
+@if (unpaidOrders.Any())
+{
+    <form asp-action="Checkout" method="get" id="checkoutForm">
+        <table class="table table-bordered table-striped">
+            <tbody>
+                @foreach (var order in unpaidOrders)
                 {
-                    <tr>
-                        <td colspan="6">
-                            <strong>訂單狀態：</strong> @(string.IsNullOrEmpty(order.Status) ? "未付款" : order.Status)
-                            <table class="table table-sm table-bordered mt-2">
-                                <thead>
-                                    <tr>
-                                        <th>選取</th>
-                                        <th>商品名稱</th>
-                                        <th>甜度</th>
-                                        <th>冰塊</th>
-                                        <th>數量</th>
-                                        <th>調整數量</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var detail in order.OrderDetails)
-                                    {
+                    if (order.OrderDetails != null && order.OrderDetails.Any())
+                    {
+                        <tr>
+                            <td colspan="6">
+                                <strong>訂單日期：</strong> @order.OrderDate.ToString("yyyy-MM-dd HH:mm:ss")
+                                <table class="table table-sm table-bordered mt-2">
+                                    <thead>
                                         <tr>
-                                            <td>
-                                                @if (order.Status != "已付款")
-                                                {
+                                            <th>選取</th>
+                                            <th>商品名稱</th>
+                                            <th>甜度</th>
+                                            <th>冰塊</th>
+                                            <th>數量</th>
+                                            <th>調整數量</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var detail in order.OrderDetails)
+                                        {
+                                            <tr>
+                                                <td>
                                                     <input type="checkbox" name="selectedDetailIds" value="@detail.Id" form="checkoutForm" />
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted">✓</span>
-                                                }
-                                            </td>
-                                            <td>@detail.Product.Name</td>
-                                            <td>@detail.Sweetness</td>
-                                            <td>@detail.Ice</td>
-                                            <td>@detail.Quantity</td>
-                                            <td>
-                                                @if (order.Status != "已付款")
-                                                {
+                                                </td>
+                                                <td>@detail.Product.Name</td>
+                                                <td>@detail.Sweetness</td>
+                                                <td>@detail.Ice</td>
+                                                <td>@detail.Quantity</td>
+                                                <td>
                                                     <form asp-action="ChangeQuantity" method="post" style="display:inline">
                                                         <input type="hidden" name="orderDetailId" value="@detail.Id" />
                                                         <input type="hidden" name="change" value="1" />
@@ -66,12 +63,63 @@
                                                         <input type="hidden" name="change" value="-1" />
                                                         <button type="submit" class="btn btn-danger btn-sm">－</button>
                                                     </form>
-                                                }
-                                                else
-                                                {
-                                                    <span class="text-muted">已結帳</span>
-                                                }
-                                            </td>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        <!-- ✅ 結帳按鈕 -->
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-primary btn-lg">結帳</button>
+        </div>
+    </form>
+}
+else
+{
+    <p class="text-muted">目前沒有未付款的訂單。</p>
+}
+
+<hr />
+
+<!-- ✅ 已付款訂單區塊 -->
+<h4 class="text-success mt-5">已付款訂單</h4>
+@if (paidOrders.Any())
+{
+    <table class="table table-bordered table-striped">
+        <tbody>
+            @foreach (var order in paidOrders)
+            {
+                if (order.OrderDetails != null && order.OrderDetails.Any())
+                {
+                    <tr>
+                        <td colspan="6">
+                            <strong>訂單日期：</strong> @order.OrderDate.ToString("yyyy-MM-dd HH:mm:ss")
+                            <table class="table table-sm table-bordered mt-2">
+                                <thead>
+                                    <tr>
+                                        <th>商品名稱</th>
+                                        <th>甜度</th>
+                                        <th>冰塊</th>
+                                        <th>數量</th>
+                                        <th>備註</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var detail in order.OrderDetails)
+                                    {
+                                        <tr>
+                                            <td>@detail.Product.Name</td>
+                                            <td>@detail.Sweetness</td>
+                                            <td>@detail.Ice</td>
+                                            <td>@detail.Quantity</td>
+                                            <td class="text-muted">已結帳</td>
                                         </tr>
                                     }
                                 </tbody>
@@ -82,11 +130,10 @@
             }
         </tbody>
     </table>
-
-    <!-- ✅ 結帳按鈕 -->
-    <div class="text-center mt-4">
-        <button type="submit" class="btn btn-primary btn-lg">結帳</button>
-    </div>
-</form>
+}
+else
+{
+    <p class="text-muted">目前沒有已付款的訂單。</p>
+}
 
 <script src="~/js/site.js"></script>
