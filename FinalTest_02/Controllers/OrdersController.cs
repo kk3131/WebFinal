@@ -263,30 +263,24 @@ namespace FinalTest_02.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ChangeQuantity(int orderDetailId, int change)
+        public async Task<IActionResult> ChangeQuantity(int orderDetailId, int newQuantity)
         {
             var detail = await _context.OrderDetails
-                .Include(od => od.Order)
-                .Include(od => od.Product)
-                .FirstOrDefaultAsync(od => od.Id == orderDetailId);
+                .Include(d => d.Order)
+                .FirstOrDefaultAsync(d => d.Id == orderDetailId);
 
             if (detail == null)
-            {
                 return NotFound();
-            }
 
-            // 調整數量（最小為 1）
-            detail.Quantity += change;
-            if (detail.Quantity < 1)
-                detail.Quantity = 1;
+            if (newQuantity < 1)
+                newQuantity = 1;
 
-            // 更新總金額（重新計算訂單總金額）
+            detail.Quantity = newQuantity;
+
             detail.Order.TotalAmount = detail.Order.OrderDetails.Sum(d => d.UnitPrice * d.Quantity);
 
             await _context.SaveChangesAsync();
-
-            // 調整後回到訂單列表
-            return RedirectToAction(nameof(Index));
+            return Ok(); // AJAX 回應 OK
         }
 
 

@@ -16,7 +16,6 @@
     </div>
 }
 
-<!-- 🔴 未付款訂單區塊 -->
 <h4 class="text-danger">未付款訂單</h4>
 @if (unpaidOrders.Any())
 {
@@ -53,16 +52,11 @@
                                                 <td>@detail.Ice</td>
                                                 <td>@detail.Quantity</td>
                                                 <td>
-                                                    <form asp-action="ChangeQuantity" method="post" style="display:inline">
-                                                        <input type="hidden" name="orderDetailId" value="@detail.Id" />
-                                                        <input type="hidden" name="change" value="1" />
-                                                        <button type="submit" class="btn btn-success btn-sm">＋</button>
-                                                    </form>
-                                                    <form asp-action="ChangeQuantity" method="post" style="display:inline">
-                                                        <input type="hidden" name="orderDetailId" value="@detail.Id" />
-                                                        <input type="hidden" name="change" value="-1" />
-                                                        <button type="submit" class="btn btn-danger btn-sm">－</button>
-                                                    </form>
+                                                    <input type="number" class="form-control quantity-input"
+                                                           data-id="@detail.Id"
+                                                           value="@detail.Quantity"
+                                                           min="1"
+                                                           style="width: 80px;" />
                                                 </td>
                                             </tr>
                                         }
@@ -75,7 +69,6 @@
             </tbody>
         </table>
 
-        <!-- ✅ 結帳按鈕 -->
         <div class="text-center mt-4">
             <button type="submit" class="btn btn-primary btn-lg">結帳</button>
         </div>
@@ -88,7 +81,6 @@ else
 
 <hr />
 
-<!-- ✅ 已付款訂單區塊 -->
 <h4 class="text-success mt-5">已付款訂單</h4>
 @if (paidOrders.Any())
 {
@@ -136,4 +128,37 @@ else
     <p class="text-muted">目前沒有已付款的訂單。</p>
 }
 
-<script src="~/js/site.js"></script>
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $(".quantity-input").on("change", function () {
+                const input = $(this);
+                const id = input.data("id");
+                const quantity = input.val();
+
+                if (quantity < 1) {
+                    alert("數量不能小於 1");
+                    input.val(1);
+                    return;
+                }
+
+                $.ajax({
+                    url: '/Orders/ChangeQuantity',
+                    type: 'POST',
+                    data: {
+                        orderDetailId: id,
+                        newQuantity: quantity,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function () {
+                        console.log("更新成功");
+                    },
+                    error: function () {
+                        alert("更新失敗！");
+                    }
+                });
+            });
+        });
+    </script>
+}
