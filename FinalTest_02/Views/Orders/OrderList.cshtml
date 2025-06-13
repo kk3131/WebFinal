@@ -37,6 +37,7 @@
                                             <th>商品名稱</th>
                                             <th>甜度</th>
                                             <th>冰塊</th>
+                                            <th>單價</th>
                                             <th>數量</th>
                                             <th>調整數量</th>
                                         </tr>
@@ -46,16 +47,25 @@
                                         {
                                             <tr>
                                                 <td>
-                                                    <input type="checkbox" name="selectedDetailIds" value="@detail.Id" form="checkoutForm" />
+                                                    <input type="checkbox"
+                                                           name="selectedDetailIds"
+                                                           value="@detail.Id"
+                                                           class="detail-checkbox"
+                                                           data-id="@detail.Id"
+                                                           data-price="@detail.UnitPrice"
+                                                           form="checkoutForm" />
                                                 </td>
                                                 <td>@detail.Product.Name</td>
                                                 <td>@detail.Sweetness</td>
                                                 <td>@detail.Ice</td>
+                                                <td>@detail.UnitPrice.ToString("NT$#,0")</td>
                                                 <td class="current-quantity" data-id="@detail.Id">@detail.Quantity</td>
                                                 <td>
                                                     <div class="d-flex align-items-center">
-                                                        <input type="number" class="form-control quantity-input me-2"
+                                                        <input type="number"
+                                                               class="form-control quantity-input me-2"
                                                                data-id="@detail.Id"
+                                                               data-price="@detail.UnitPrice"
                                                                value="@detail.Quantity"
                                                                min="1"
                                                                style="width: 80px;" />
@@ -73,7 +83,11 @@
             </tbody>
         </table>
 
-        <div class="text-center mt-4">
+        <div class="text-end mt-3 me-2">
+            <strong id="totalAmountText" style="font-size: 18px;">總金額：NT$ 0</strong>
+        </div>
+
+        <div class="text-center mt-2">
             <button type="submit" class="btn btn-primary btn-lg">結帳</button>
         </div>
     </form>
@@ -135,7 +149,21 @@ else
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(document).ready(function () {
+        function calculateTotal() {
+            let total = 0;
+
+            $(".detail-checkbox:checked").each(function () {
+                const id = $(this).data("id");
+                const price = parseFloat($(this).data("price"));
+                const quantity = parseInt($(".quantity-input[data-id='" + id + "']").val());
+
+                total += price * quantity;
+            });
+
+            $("#totalAmountText").text("選取商品總金額：NT$ " + total.toFixed(0));
+        }
+
+                $(document).ready(function () {
             $(".quantity-input").on("change", function () {
                 const input = $(this);
                 const id = input.data("id");
@@ -165,12 +193,23 @@ else
                         setTimeout(() => {
                             statusSpan.fadeOut(300, () => statusSpan.text("").show());
                         }, 1200);
+                        calculateTotal();
                     },
                     error: function () {
                         statusSpan.html("❌").css("color", "red");
                     }
                 });
             });
+
+            $(".quantity-input").on("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault(); // ✅ 避免按 Enter 觸發結帳
+                }
+            });
+
+            $(".detail-checkbox").on("change", calculateTotal);
+            $(".quantity-input").on("input", calculateTotal); // 即時加總
         });
+
     </script>
 }
