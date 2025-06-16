@@ -57,16 +57,39 @@ namespace FinalTest_02.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description,Price,Category,ImageUrl")] Product product)
+        public async Task<IActionResult> Create([Bind("Id,Name,Description,Price,Category")] Product product, IFormFile ImageFile)
         {
             if (ModelState.IsValid)
             {
+                if (ImageFile != null && ImageFile.Length > 0)
+                {
+                    var fileName = Path.GetFileNameWithoutExtension(ImageFile.FileName);
+                    var extension = Path.GetExtension(ImageFile.FileName);
+                    var newFileName = $"{fileName}_{DateTime.Now.Ticks}{extension}";
+
+                    // ✅ 自動建立路徑，不用你手動建資料夾
+                    var saveDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                    Directory.CreateDirectory(saveDir); // ✨ 就這一行，自動建立資料夾
+
+                    var filePath = Path.Combine(saveDir, newFileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await ImageFile.CopyToAsync(stream);
+                    }
+
+                    // 將圖片路徑儲存在資料庫
+                    product.ImageUrl = $"/uploads/{newFileName}";
+                }
+
                 _context.Add(product);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
             return View(product);
         }
+
+
 
         // GET: Products/Edit/5
         public async Task<IActionResult> Edit(int? id)
