@@ -25,7 +25,7 @@
         {
             // 計算總金額
             var total = order.OrderDetails.Sum(d => d.UnitPrice * d.Quantity);
-            bool isFirstRow = true;
+            @* bool isFirstRow = true; *@
 
             foreach (var detail in order.OrderDetails)
             {

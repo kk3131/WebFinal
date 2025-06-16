@@ -40,6 +40,7 @@
                                             <th>單價</th>
                                             <th>數量</th>
                                             <th>調整數量</th>
+                                            <th>操作</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -57,7 +58,7 @@
                                                 </td>
                                                 <td>@detail.Product.Name</td>
                                                 <td>@detail.Sweetness</td>
-                                                <td>@detail.Ice</td>
+                                                <td>@detail.Ice</td>                                                
                                                 <td>@detail.UnitPrice.ToString("NT$#,0")</td>
                                                 <td class="current-quantity" data-id="@detail.Id">@detail.Quantity</td>
                                                 <td>
@@ -71,6 +72,14 @@
                                                                style="width: 80px;" />
                                                         <span class="status-message" id="status-@detail.Id" style="min-width: 60px;"></span>
                                                     </div>
+                                                </td>
+                                                <td>
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-danger delete-button"
+                                                            data-id="@detail.Id"
+                                                            data-orderid="@order.Id">
+                                                        刪除
+                                                    </button>
                                                 </td>
                                             </tr>
                                         }
@@ -162,6 +171,46 @@ else
 
             $("#totalAmountText").text("選取商品總金額：NT$ " + total.toFixed(0));
         }
+
+                      $(".delete-button").on("click", function () {
+            const button = $(this);
+            const detailId = button.data("id");
+            const token = $('input[name="__RequestVerificationToken"]').val();
+
+            if (!confirm("確定要刪除這個商品嗎？")) return;
+
+            $.ajax({
+                url: '/Orders/DeleteDetail',
+                type: 'POST',
+                data: {
+                    orderDetailId: detailId,
+                    __RequestVerificationToken: token
+                },
+                success: function () {
+                    const row = button.closest("tr"); // 當前商品那一列
+                    const orderTable = row.closest("table.table-sm"); // 整張商品表格
+                    const orderContainer = orderTable.closest("tr");  // 外層包住訂單日期 + 商品表的 tr
+
+                    row.fadeOut(300, function () {
+                        row.remove();
+
+                        // 如果該筆訂單底下所有商品都被刪光，就連訂單一起移除
+                        if (orderTable.find("tbody tr").length === 0) {
+                            orderContainer.fadeOut(300, function () {
+                                orderContainer.remove();
+                            });
+                        }
+
+                        calculateTotal(); // 重新計算金額
+                    });
+                },
+                error: function () {
+                    alert("刪除失敗，請稍後再試！");
+                }
+            });
+        });
+
+
 
                 $(document).ready(function () {
             $(".quantity-input").on("change", function () {

@@ -78,7 +78,7 @@
     <tbody>
         @foreach (var item in Model)
         {
-            <tr>
+            <tr id="product-row-@item.Id">
                 <td>@item.Name</td>
                 <td>@item.Description</td>
                 <td>NT$ @item.Price</td>
@@ -98,6 +98,31 @@
                     <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#orderModal_@item.Id">
                         ➕ 加入
                     </button>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal_@item.Id">
+                            🗑 刪除
+                        </button>
+
+                        <!-- 刪除確認 Modal (不變) -->
+                        <div class="modal fade" id="deleteModal_@item.Id" tabindex="-1" aria-labelledby="deleteModalLabel_@item.Id" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content shadow">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="deleteModalLabel_@item.Id">⚠️ 確認刪除</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        你確定要刪除 <strong>@item.Name</strong> 嗎？
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                                        <button type="button" class="btn btn-danger confirm-delete-btn" data-id="@item.Id">確定刪除</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </td>
             </tr>
         }
@@ -158,6 +183,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function () {
+            // ✅ 加入訂單的表單驗證
             $(".order-form").on("submit", function (e) {
                 const form = $(this);
                 const quantityInput = form.find(".quantity-input");
@@ -179,6 +205,32 @@
                     form.find("button[type=submit]").html("✅ 加入訂單").prop("disabled", false);
                 }, 800);
             });
+
+            // ✅ AJAX 刪除商品（Admin 專用）
+                   $(".confirm-delete-btn").on("click", function () {
+            const productId = $(this).data("id");
+            const modal = $(this).closest(".modal");
+
+            $.ajax({
+                    type: "POST",
+                    url: "/Products/DeleteProduct",
+                    data: { id: productId },
+                    success: function (response) {
+                        if (response.success) {
+                            modal.modal("hide");
+                            $("#product-row-" + productId).fadeOut(500, function () {
+                                $(this).remove();
+                            });
+                        } else {
+                            alert("❌ 刪除失敗：" + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert("❌ 刪除失敗，請稍後再試。");
+                    }
+                });
+            });
         });
     </script>
 }
+

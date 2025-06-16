@@ -369,7 +369,7 @@ namespace FinalTest_02.Controllers
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
-            TempData["Message"] = $"已將【{product.Name}】加入訂單，尚未付款與扣庫存。";
+            //TempData["Message"] = $"已將【{product.Name}】加入訂單，尚未付款與扣庫存。";
 
             return RedirectToAction(nameof(Index), "Products");
         }
@@ -499,6 +499,42 @@ namespace FinalTest_02.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteDetail(int orderDetailId)
+        {
+            var detail = _context.OrderDetails.FirstOrDefault(d => d.Id == orderDetailId);
+            if (detail == null)
+            {
+                return NotFound();
+            }
+
+            var orderId = detail.OrderId;
+
+            // 刪除該筆明細
+            _context.OrderDetails.Remove(detail);
+            _context.SaveChanges();
+
+            // 檢查該訂單是否已無任何明細
+            var remainingDetails = _context.OrderDetails
+                                           .Where(d => d.OrderId == orderId)
+                                           .Any();
+
+            if (!remainingDetails)
+            {
+                var order = _context.Orders.FirstOrDefault(o => o.Id == orderId);
+                if (order != null)
+                {
+                    _context.Orders.Remove(order);
+                    _context.SaveChanges();
+                }
+            }
+
+            return Ok();
+        }
+
+
 
         private bool OrderExists(int id)
         {
