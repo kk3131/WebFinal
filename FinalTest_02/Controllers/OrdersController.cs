@@ -151,7 +151,6 @@ namespace FinalTest_02.Controllers
         //    return RedirectToAction(nameof(Index));
         //}
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CheckoutConfirmed(int[] orderDetailIds)
@@ -174,7 +173,7 @@ namespace FinalTest_02.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // ✅ 再次檢查每個商品是否還有足夠庫存
+            // ✅ 檢查庫存
             foreach (var detail in orderDetails)
             {
                 if (detail.Product.Stock < detail.Quantity)
@@ -184,22 +183,26 @@ namespace FinalTest_02.Controllers
                 }
             }
 
-            // ✅ 所有商品庫存足夠，進行扣庫存
+            // ✅ 扣庫存 + 設定為已付款
             foreach (var detail in orderDetails)
             {
                 detail.Product.Stock -= detail.Quantity;
                 detail.IsPaid = true;
             }
 
-            var order = orderDetails.First().Order;
-            order.Status = "已付款";
+            // ✅ 將所有有被選到商品的訂單設為已付款
+            var affectedOrders = orderDetails.Select(od => od.Order).Distinct();
+            foreach (var order in affectedOrders)
+            {
+                order.Status = "已付款";
+            }
 
             await _context.SaveChangesAsync();
 
             TempData["Message"] = "結帳成功，已扣除庫存。";
-
             return RedirectToAction(nameof(Index));
         }
+
 
 
 

@@ -141,28 +141,26 @@ namespace FinalTest_02.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var user = await _context.Users.FindAsync(model.Id);
+            var user = await _userManager.FindByIdAsync(model.Id);
             if (user == null)
                 return NotFound();
 
+            user.UserName = model.UserName;
+            user.Email = model.Email;
             user.Name = model.Name;
             user.Address = model.Address;
 
-            try
+            var updateResult = await _userManager.UpdateAsync(user);
+            if (!updateResult.Succeeded)
             {
-                _context.Update(user);
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(model.Id))
-                    return NotFound();
-                else
-                    throw;
+                foreach (var error in updateResult.Errors)
+                    ModelState.AddModelError(string.Empty, error.Description);
+                return View(model);
             }
 
             return RedirectToAction(nameof(Index));
         }
+
 
         public async Task<IActionResult> Delete(string id)
         {
