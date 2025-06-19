@@ -90,6 +90,23 @@ namespace FinalTest_02.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            // ❗ 檢查是否有超過庫存的商品
+            var stockWarnings = new List<string>();
+            foreach (var od in orderDetails)
+            {
+                if (od.Quantity > od.Product.Stock)
+                {
+                    stockWarnings.Add($"{od.Product.Name} 庫存僅剩 {od.Product.Stock} 杯，請重新調整訂購數量。");
+                }
+            }
+
+            if (stockWarnings.Any())
+            {
+                TempData["Message"] = string.Join("<br/>", stockWarnings);
+                return RedirectToAction(nameof(Index));
+            }
+
+            // ✅ 全部庫存足夠，顯示結帳畫面
             decimal totalAmount = orderDetails.Sum(od => od.UnitPrice * od.Quantity);
 
             var vm = new CheckoutViewModel
@@ -100,6 +117,7 @@ namespace FinalTest_02.Controllers
 
             return View(vm);
         }
+
 
         // 管理者查看所有用戶訂單明細
         public async Task<IActionResult> AdminIndex()

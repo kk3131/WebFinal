@@ -49,6 +49,18 @@ namespace FinalTest_02.Controllers
         public async Task<IActionResult> Stock()
         {
             var products = await _context.Products.ToListAsync();
+
+            // 檢查哪些產品庫存不足
+            var lowStockProducts = products
+                .Where(p => p.Stock < 10)
+                .Select(p => p.Name)
+                .ToList();
+
+            if (lowStockProducts.Any())
+            {
+                ViewBag.LowStockWarning = "以下產品庫存低於 10，請儘快補貨： " + string.Join("、", lowStockProducts);
+            }
+
             return View(products);
         }
 

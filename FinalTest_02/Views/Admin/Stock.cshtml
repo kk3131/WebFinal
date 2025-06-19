@@ -11,6 +11,14 @@
     <div class="alert alert-success">@TempData["Message"]</div>
 }
 
+@if (ViewBag.LowStockWarning != null)
+{
+    <div class="alert alert-warning">
+        @ViewBag.LowStockWarning
+    </div>
+}
+
+
 <table class="table table-bordered">
     <thead>
         <tr>

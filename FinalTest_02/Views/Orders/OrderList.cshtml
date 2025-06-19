@@ -11,8 +11,8 @@
 
 @if (TempData["Message"] != null)
 {
-    <div class="alert alert-info">
-        @TempData["Message"]
+    <div class="alert alert-danger">
+        @Html.Raw(TempData["Message"])
     </div>
 }
 
@@ -58,7 +58,7 @@
                                                 </td>
                                                 <td>@detail.Product.Name</td>
                                                 <td>@detail.Sweetness</td>
-                                                <td>@detail.Ice</td>                                                
+                                                <td>@detail.Ice</td>
                                                 <td>@detail.UnitPrice.ToString("NT$#,0")</td>
                                                 <td class="current-quantity" data-id="@detail.Id">@detail.Quantity</td>
                                                 <td>
@@ -75,6 +75,12 @@
                                                     <div class="text-muted mt-1 subtotal-text" data-id="@detail.Id">
                                                         小計：NT$ @(detail.UnitPrice * detail.Quantity)
                                                     </div>
+
+                                                    <!-- 隱藏欄位記錄商品庫存 -->
+                                                    <input type="hidden"
+                                                           class="stock-input"
+                                                           data-id="@detail.Id"
+                                                           value="@detail.Product.Stock" />
                                                 </td>
                                                 <td>
                                                     <button type="button"
@@ -100,7 +106,7 @@
         </div>
 
         <div class="text-center mt-2">
-            <button type="submit" class="btn btn-primary btn-lg">結帳</button>
+            <button type="submit" class="btn btn-primary btn-lg" id="checkoutButton">結帳</button>
         </div>
     </form>
 }
@@ -161,7 +167,7 @@ else
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-                function calculateTotal() {
+        function calculateTotal() {
             let total = 0;
 
             $(".detail-checkbox:checked").each(function () {
@@ -172,10 +178,8 @@ else
                 total += price * quantity;
             });
 
-            // 更新總金額顯示
             $("#totalAmountText").text("選取商品總金額：NT$ " + total.toFixed(0));
 
-            // 更新每個商品的小計
             $(".quantity-input").each(function () {
                 const id = $(this).data("id");
                 const price = parseFloat($(this).data("price"));
@@ -186,47 +190,7 @@ else
             });
         }
 
-                      $(".delete-button").on("click", function () {
-            const button = $(this);
-            const detailId = button.data("id");
-            const token = $('input[name="__RequestVerificationToken"]').val();
-
-            if (!confirm("確定要刪除這個商品嗎？")) return;
-
-            $.ajax({
-                url: '/Orders/DeleteDetail',
-                type: 'POST',
-                data: {
-                    orderDetailId: detailId,
-                    __RequestVerificationToken: token
-                },
-                success: function () {
-                    const row = button.closest("tr"); // 當前商品那一列
-                    const orderTable = row.closest("table.table-sm"); // 整張商品表格
-                    const orderContainer = orderTable.closest("tr");  // 外層包住訂單日期 + 商品表的 tr
-
-                    row.fadeOut(300, function () {
-                        row.remove();
-
-                        // 如果該筆訂單底下所有商品都被刪光，就連訂單一起移除
-                        if (orderTable.find("tbody tr").length === 0) {
-                            orderContainer.fadeOut(300, function () {
-                                orderContainer.remove();
-                            });
-                        }
-
-                        calculateTotal(); // 重新計算金額
-                    });
-                },
-                error: function () {
-                    alert("刪除失敗，請稍後再試！");
-                }
-            });
-        });
-
-
-
-                $(document).ready(function () {
+        $(document).ready(function () {
             $(".quantity-input").on("change", function () {
                 const input = $(this);
                 const id = input.data("id");
@@ -266,13 +230,36 @@ else
 
             $(".quantity-input").on("keydown", function (e) {
                 if (e.key === "Enter") {
-                    e.preventDefault(); // ✅ 避免按 Enter 觸發結帳
+                    e.preventDefault();
                 }
             });
 
-            $(".detail-checkbox").on("change", calculateTotal);
-            $(".quantity-input").on("input", calculateTotal); // 即時加總
-        });
+            $(".detail-checkbox, .quantity-input").on("input change", calculateTotal);
 
+            // ✅ 檢查庫存是否足夠
+            $("#checkoutButton").on("click", function (e) {
+                let isValid = true;
+                let messages = [];
+
+                $(".detail-checkbox:checked").each(function () {
+                    const id = $(this).data("id");
+                    const quantity = parseInt($(".quantity-input[data-id='" + id + "']").val());
+                    const stock = parseInt($(".stock-input[data-id='" + id + "']").val());
+                    const name = $(this).closest("tr").find("td:nth-child(2)").text(); // 產品名稱
+
+                    if (quantity > stock) {
+                        isValid = false;
+                        messages.push(`${name} 目前庫存剩下 ${stock} 杯，請重新調整數量`);
+                    }
+                });
+
+                if (!isValid) {
+                    e.preventDefault();
+                    alert(messages.join("\n"));
+                }
+            });
+
+            calculateTotal();
+        });
     </script>
 }
